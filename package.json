@@ -69,7 +69,8 @@
     "redux-first-history": "5.0.12",
     "string-similarity": "4.0.4",
     "styled-components": "5.3.5",
-    "typescript": "4.7.4"
+    "typescript": "4.7.4",
+    "zod": "^3.19.1"
   },
   "scripts": {
     "start": "vite",

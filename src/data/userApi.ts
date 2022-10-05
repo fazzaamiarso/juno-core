@@ -1,62 +1,63 @@
-import { AxiosResponse } from 'axios'
+import { z } from 'zod'
 import { errorHandling, instance } from './api'
 
-interface UserType {
-  emailAddress?: string | null
-  historyId?: string | null
-  messagesTotal?: number | null
-  threadsTotal?: number | null
-}
+const UserTypeSchema = z.object({
+  emailAddress: z.string().nullish(),
+  historyId: z.string().nullish(),
+  messagesTotal: z.number().nullish(),
+  threadsTotal: z.number().nullish(),
+})
 
-interface UserPromise {
-  config: any
-  method: any
-  data: {
-    data: UserType
-  }
-  headers: any
-  request: any
-  status: number
-  statusText: string
-}
+const responseSchema = z.object({
+  config: z.any(),
+  method: z.any(),
+  headers: z.any(),
+  request: z.any(),
+  status: z.number(),
+  statusText: z.string(),
+})
+
+const credentialsSchema = z.object({
+  access_token: z.string(),
+  expiry_date: z.number(),
+  id_token: z.string(),
+  token_type: z.string(),
+  refresh_token: z.string(),
+  scope: z.string(),
+})
+const UserSchema = responseSchema.extend({ data: UserTypeSchema })
+const stringResponseSchema = responseSchema.extend({ data: z.string() })
+const authCallbackSchema = responseSchema.extend({ data: credentialsSchema })
 
 const userApi = () => ({
   authGoogle: async (noSession?: boolean) => {
     try {
-      const res: AxiosResponse<UserPromise> = await instance.post(
-        `/api/auth/oauth/google/`,
-        { noSession }
-      )
-      return res
+      const res = await instance.post(`/api/auth/oauth/google/`, { noSession })
+      return stringResponseSchema.parse(res)
     } catch (err: any) {
       return errorHandling(err)
     }
   },
   authGoogleCallback: async (body: { code?: string; state?: string }) => {
     try {
-      const res: AxiosResponse<UserPromise> = await instance.post(
-        `/api/auth/oauth/google/callback/`,
-        body
-      )
-      return res
+      const res = await instance.post(`/api/auth/oauth/google/callback/`, body)
+      return authCallbackSchema.parse(res)
     } catch (err: any) {
       return errorHandling(err)
     }
   },
   fetchUser: async () => {
     try {
-      const res: AxiosResponse<UserPromise> = await instance.get(`/api/user`)
-      return res
+      const res = await instance.get(`/api/user`)
+      return UserSchema.parse(res)
     } catch (err: any) {
       return errorHandling(err)
     }
   },
   logoutUser: async () => {
     try {
-      const res: AxiosResponse<UserPromise> = await instance.get(
-        `/api/user/logout`
-      )
-      return res
+      const res = await instance.get(`/api/user/logout`)
+      return stringResponseSchema.parse(res)
     } catch (err: any) {
       return errorHandling(err)
     }

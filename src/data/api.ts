@@ -24,10 +24,7 @@ export const fetchToken = () => {
     return null
   }
   const token = localStorage.getItem(global.ID_TOKEN)
-  if (token) {
-    return token
-  }
-  return null
+  return token
 }
 export const instance = axios.create({
   withCredentials:
