@@ -3,13 +3,15 @@ import qs from 'qs'
 import { z } from 'zod'
 import { errorHandling, instance } from './api'
 
-const EmailQuerySchema = z.object({
-  nextPageToken: z.string().nullable(),
-  labelIds: z.array(z.string()).optional(),
-  maxResults: z.number().optional(),
-  q: z.string().optional(),
-  silentLoading: z.boolean().optional(),
-})
+const EmailQuerySchema = z
+  .object({
+    nextPageToken: z.string().nullable(),
+    labelIds: z.array(z.string()),
+    maxResults: z.number(),
+    q: z.string(),
+    silentLoading: z.boolean(),
+  })
+  .partial()
 
 export type EmailQueryObject = z.infer<typeof EmailQuerySchema>
 

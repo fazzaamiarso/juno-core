@@ -27,10 +27,7 @@ export const BASE_API_URL = import.meta.env.VITE_BACKEND_URL.replace(/\/$/, '')
 export const fetchToken = () => {
   if (import.meta.env.VITE_USE_LOCAL_FRONTEND_CLOUD_BACKEND === 'true') {
     const credentials = localStorage.getItem(global.CREDENTIALS)
-    if (credentials) {
-      return credentials
-    }
-    return null
+    return credentials
   }
   const token = localStorage.getItem(global.ID_TOKEN)
   return token
@@ -65,7 +62,7 @@ instance.interceptors.request.use(
 
 export const errorHandling = async (
   err: any
-): Promise<AxiosError<any, any>> => {
+): Promise<AxiosError<any, any> & { data?: any; isRetry: boolean }> => {
   process.env.NODE_ENV === 'development' && console.error(err)
   const originalRequest = err.config
   if (

@@ -28,7 +28,7 @@ const Login = () => {
     const response = await userApi().authGoogle(
       import.meta.env.VITE_USE_LOCAL_FRONTEND_CLOUD_BACKEND === 'true'
     )
-    if (response?.status === 200) {
+    if (response.status === 200) {
       setLoginUrl(response.data)
     }
   }

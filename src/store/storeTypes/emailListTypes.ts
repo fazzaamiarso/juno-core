@@ -1,11 +1,14 @@
-export interface IEmailMessageHeaders {
-  date: string
-  from: string
-  subject: string
-  to: string
-  cc: string
-  bcc: string
-}
+import { z } from 'zod'
+
+const emailMessageHeaders = z.object({
+  date: z.string(),
+  from: z.string(),
+  subject: z.string(),
+  to: z.string(),
+  cc: z.string(),
+  bcc: z.string(),
+})
+type IEmailMessageHeaders = z.infer<typeof emailMessageHeaders>
 
 export interface IEmailMessagePayloadRaw {
   partId: string
@@ -20,54 +23,82 @@ export interface IEmailMessagePayloadRaw {
   parts?: IEmailMessagePayloadRaw[]
 }
 
-export interface IEmailMessagePayloadConverted {
-  mimeType: string
-  headers: IEmailMessageHeaders
-  files?: undefined | IEmailMessagePayloadRaw[]
-  body?: {
-    emailFileHTML: any[]
-    emailHTML: string
-    removedTrackers: string[]
-  }
-  parts?: IEmailMessagePayloadRaw[]
-}
+// Types with self-reference needed to have a "type hint"
+// https://github.com/colinhacks/zod#recursive-types
+const emailMessagePayloadRaw: z.ZodType<IEmailMessagePayloadRaw> = z.lazy(() =>
+  z.object({
+    partId: z.string(),
+    filename: z.string(),
+    mimeType: z.string(),
+    headers: emailMessageHeaders,
+    body: z.object({
+      data: z.string().optional(),
+      attachmentId: z.string().optional(),
+      size: z.number(),
+    }),
+    parts: z.array(emailMessagePayloadRaw).optional(),
+  })
+)
 
-export interface IEmailMessage {
-  id: string
-  threadId: string
-  labelIds: string[]
-  snippet: string
-  payload: IEmailMessagePayloadConverted
-  sizeEstimate: number
-  historyId: string
-  internalDate: string
-}
+const emailMessagePayloadConverted = z.object({
+  mimeType: z.string(),
+  headers: emailMessageHeaders,
+  files: z.array(emailMessagePayloadRaw).optional(),
+  body: z.object({
+    emailFileHTML: z.array(z.any()),
+    emailHTML: z.string(),
+    removedTrackers: z.array(z.string()),
+  }),
+  parts: z.array(emailMessagePayloadRaw).optional(),
+})
 
-export interface IEmailListThreadItem {
-  id: string
-  historyId: string
-  messages: IEmailMessage[]
-}
+const emailMessage = z.object({
+  id: z.string(),
+  threadId: z.string(),
+  labelIds: z.array(z.string()),
+  snippet: z.string(),
+  sizeEstimate: z.number(),
+  historyId: z.string(),
+  internalDate: z.string(),
+  payload: emailMessagePayloadConverted,
+})
 
-export interface IEmailListObject {
-  labels: string[]
-  threads: IEmailListThreadItem[]
-  nextPageToken: string | null | undefined
-  resultSizeEstimate?: number
-  timestamp?: number
-  q?: string
-}
+const emailListThreadItem = z.object({
+  id: z.string(),
+  historyId: z.string(),
+  messages: z.array(emailMessage),
+})
 
-export interface IEmailListState {
-  emailList: IEmailListObject[]
-  selectedEmails: string[]
-  searchList: IEmailListObject | null
-  activeEmailListIndex: number
-  isFetching: boolean
-}
+const emailListObject = z.object({
+  labels: z.array(z.string()),
+  threads: z.array(emailListThreadItem),
+  nextPageToken: z.string().nullish(),
+  resultSizeEstimate: z.number().optional(),
+  timestamp: z.number().optional(),
+  q: z.string().optional(),
+})
 
-export type TBaseEmailList = {
-  labels: string[]
-  threads: []
-  nextPageToken: null
-}[]
+const emailListState = z.object({
+  emailList: z.array(emailListObject),
+  selectedEmails: z.array(z.string()),
+  searchList: emailListObject.nullable(),
+  activeEmailListIndex: z.number(),
+  isFetching: z.boolean(),
+})
+
+const emailBaseList = z.array(
+  z.object({
+    labels: z.array(z.string()),
+    threads: z.array(emailListThreadItem),
+    nextPageToken: z.null(),
+  })
+)
+
+// type IEmailMessagePayloadConverted = z.infer<
+//   typeof emailMessagePayloadConverted
+// >
+export type IEmailMessage = z.infer<typeof emailMessage>
+export type IEmailListThreadItem = z.infer<typeof emailListThreadItem>
+export type IEmailListObject = z.infer<typeof emailListObject>
+export type IEmailListState = z.infer<typeof emailListState>
+export type TBaseEmailList = z.infer<typeof emailBaseList>
