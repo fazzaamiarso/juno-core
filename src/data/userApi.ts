@@ -13,10 +13,11 @@ const responseSchema = z.object({
   method: z.any(),
   headers: z.any(),
   request: z.any(),
-  status: z.literal(200),
+  status: z.union([z.literal(200), z.literal(205)]),
   statusText: z.string(),
 })
 
+// fix this
 const credentialsSchema = z.object({
   access_token: z.string(),
   expiry_date: z.number(),
@@ -25,9 +26,12 @@ const credentialsSchema = z.object({
   refresh_token: z.string(),
   scope: z.string(),
 })
+
 const UserSchema = responseSchema.extend({ data: UserTypeSchema })
 const stringResponseSchema = responseSchema.extend({ data: z.string() })
-const authCallbackSchema = responseSchema.extend({ data: credentialsSchema })
+const authCallbackSchema = responseSchema.extend({
+  data: credentialsSchema,
+})
 
 const userApi = () => ({
   authGoogle: async (noSession?: boolean) => {
@@ -41,7 +45,8 @@ const userApi = () => ({
   authGoogleCallback: async (body: { code?: string; state?: string }) => {
     try {
       const res = await instance.post(`/api/auth/oauth/google/callback/`, body)
-      return authCallbackSchema.parse(res)
+      // if there is session, doesn't return a full credentials
+      return res
     } catch (err: any) {
       return errorHandling(err)
     }
@@ -57,6 +62,7 @@ const userApi = () => ({
   logoutUser: async () => {
     try {
       const res = await instance.get(`/api/user/logout`)
+      console.log(res)
       return stringResponseSchema.parse(res)
     } catch (err: any) {
       return errorHandling(err)

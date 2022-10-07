@@ -1,26 +1,27 @@
-import { AxiosResponse } from 'axios'
+import { z } from 'zod'
+import { googleLabel } from '../store/storeTypes/labelsTypes'
 import { errorHandling, instance } from './api'
 
 const labelApi = () => ({
   fetchLabels: async () => {
     try {
-      const res: AxiosResponse<any> = await instance.get(`/api/labels`)
-      return res.data
+      const res = await instance.get(`/api/labels`)
+      return z.object({ labels: z.array(googleLabel) }).parse(res.data)
     } catch (err) {
       return errorHandling(err)
     }
   },
   fetchSingleLabel: async (id: string) => {
     try {
-      const res: AxiosResponse<any> = await instance.get(`/api/label/${id}`)
-      return res.data
+      const res = await instance.get(`/api/label/${id}`)
+      return googleLabel.parse(res.data)
     } catch (err) {
       return errorHandling(err)
     }
   },
   updateLabel: async (body: any) => {
     try {
-      const res: AxiosResponse<any> = await instance.patch(`/api/labels`, body)
+      const res = await instance.patch(`/api/labels`, body)
       return res.data
     } catch (err) {
       return errorHandling(err)
@@ -28,7 +29,7 @@ const labelApi = () => ({
   },
   deleteLabel: async (id: string) => {
     try {
-      const res: AxiosResponse<any> = await instance.delete(`/api/labels`, {
+      const res = await instance.delete(`/api/labels`, {
         data: { id },
       })
       return res.data
@@ -38,7 +39,7 @@ const labelApi = () => ({
   },
   createLabel: async (body: any) => {
     try {
-      const res: AxiosResponse<any> = await instance.post(`/api/labels`, body)
+      const res = await instance.post(`/api/labels`, body)
       return res
     } catch (err) {
       return errorHandling(err)

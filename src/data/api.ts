@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosRequestConfig } from 'axios'
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { z } from 'zod'
 import * as global from '../constants/globalConstants'
 import assertNonNullish from '../utils/assertNonNullish'
@@ -60,9 +60,8 @@ instance.interceptors.request.use(
   }
 )
 
-export const errorHandling = async (
-  err: any
-): Promise<AxiosError<any, any> & { data?: any; isRetry: boolean }> => {
+// still don't know how to handle the typings.
+export const errorHandling = async (err: any) => {
   process.env.NODE_ENV === 'development' && console.error(err)
   const originalRequest = err.config
   if (
