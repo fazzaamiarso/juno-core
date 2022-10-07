@@ -13,7 +13,7 @@ const responseSchema = z.object({
   method: z.any(),
   headers: z.any(),
   request: z.any(),
-  status: z.number(),
+  status: z.literal(200),
   statusText: z.string(),
 })
 

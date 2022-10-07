@@ -1,4 +1,5 @@
-import axios, { AxiosRequestConfig } from 'axios'
+import axios, { AxiosError, AxiosRequestConfig } from 'axios'
+import { z } from 'zod'
 import * as global from '../constants/globalConstants'
 import assertNonNullish from '../utils/assertNonNullish'
 import validateLocalSetup from '../utils/validateLocalSetup'
@@ -14,6 +15,14 @@ validateLocalSetup(
 )
 
 export const BASE_API_URL = import.meta.env.VITE_BACKEND_URL.replace(/\/$/, '')
+
+// const ErrorSchema = z
+//   .object({
+//     response: z.object({ data: z.any(), status: z.number() }).optional(),
+//   })
+//   .or(z.string())
+//   .optional()
+// type ErrorType = z.infer<typeof ErrorSchema>
 
 export const fetchToken = () => {
   if (import.meta.env.VITE_USE_LOCAL_FRONTEND_CLOUD_BACKEND === 'true') {
@@ -54,7 +63,9 @@ instance.interceptors.request.use(
   }
 )
 
-export const errorHandling = async (err: any) => {
+export const errorHandling = async (
+  err: any
+): Promise<AxiosError<any, any>> => {
   process.env.NODE_ENV === 'development' && console.error(err)
   const originalRequest = err.config
   if (

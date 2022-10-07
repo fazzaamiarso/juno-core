@@ -1,14 +1,17 @@
 import { AxiosResponse } from 'axios'
 import qs from 'qs'
+import { z } from 'zod'
 import { errorHandling, instance } from './api'
 
-export interface EmailQueryObject {
-  labelIds?: string[]
-  maxResults?: number
-  nextPageToken: string | null
-  q?: string
-  silentLoading?: boolean
-}
+const EmailQuerySchema = z.object({
+  nextPageToken: z.string().nullable(),
+  labelIds: z.array(z.string()).optional(),
+  maxResults: z.number().optional(),
+  q: z.string().optional(),
+  silentLoading: z.boolean().optional(),
+})
+
+export type EmailQueryObject = z.infer<typeof EmailQuerySchema>
 
 const threadApi = ({
   controller,
